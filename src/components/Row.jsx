@@ -1,15 +1,65 @@
-import React, { useEffect, useState } from 'react';
+import { GridList, makeStyles, GridListTile } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
 import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
 import axios from '../api/axios';
 
 const base_url = "https://image.tmdb.org/t/p/original/";
 
+const useStyles = makeStyles(theme => ({
+    root: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-around',
+        overflow: 'hidden',
+        backgroundColor: theme.palette.background.paper,
+    },
+
+    gridList: {
+        flexWrap: 'nowrap',
+        // Promote the list into his own layer on Chrome. This cost memory but helps keeping high FPS.
+        transform: 'translateZ(0)',
+        padding: '20px',
+    },
+    
+    gridItem: {
+        objectFit: 'contain',
+        width: '100%',
+        maxHeight: '100px',
+        margin: '0 5px',
+        transition: 'transform 450ms',
+
+        '&:hover': {
+            transform: 'scale(1.08)',
+        }
+    },
+
+    gridElement: {
+        width: '100%',
+        maxWidth: '400px',
+        height: 'auto',
+    },
+
+    posterLarge: {
+        maxHeight: '300px',
+        width: '100%',
+        height: 'auto',
+
+        '&:hover': {
+            transform: 'scale(1.09)',
+            opacity: 1,
+        },
+    },
+}));
+
 Row.propTypes = {
     title: PropTypes.string,
     fetchUrl: PropTypes.string,
+    isLargeRow: PropTypes.bool,
 };
 
-function Row({title, fetchUrl}) {
+function Row({title, fetchUrl, isLargeRow}) {
+    const classes = useStyles();
     const [movies, setMovies] = useState([]);
 
     useEffect(() => {
@@ -21,23 +71,24 @@ function Row({title, fetchUrl}) {
         fetchData();
     }, [fetchUrl]);
 
-    console.table(movies);
+    // console.table(movies);
 
     return (
-        <div className="row">
+        <Box className={classes.root}>
             <h2>{title}</h2>
 
-            <div className="row__posters">
+            <GridList className={classes.gridList} cols={7}>
                 {movies.map(movie => (
-                    <img 
-                        className="row__poster"
-                        width="100%" 
-                        src={`${base_url}${movie.poster_path}`} 
-                        alt={movie.original_title} 
-                    />
+                    <GridListTile key={movie.id} className={`${classes.gridItem} ${isLargeRow && classes.posterLarge}`}>
+                        <img 
+                            className={classes.gridElement}
+                            src={`${base_url}${isLargeRow ? movie.poster_path : movie.backdrop_path}`} 
+                            alt={movie.original_title} 
+                        />
+                    </GridListTile>
                 ))}
-            </div>
-        </div>
+            </GridList>
+        </Box>
     );
 }
 
